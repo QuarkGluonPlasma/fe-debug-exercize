@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>worker performance optimization</title>
+</head>
+<body>
+    <div>hello</div>
+    <script>
+        function a() {
+           b();
+        }
+        function b() {
+            let total = 0;
+            for(let i = 0; i< 10*10000*10000; i++) {
+                total += i;
+            }
+            console.log('b:', total);
+        }
+
+        a();
+    </script>
+    <script>
+        function c() {
+            d();
+        }
+        function d() {
+            let total = 0;
+            for(let i = 0; i< 1*10000*10000; i++) {
+                total += i;
+            }
+            console.log('c:', total);
+        }
+        c();
+    </script>
+</body>
+</html>

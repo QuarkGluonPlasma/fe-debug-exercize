@@ -9,7 +9,10 @@
             "request": "launch",
             "name": "调试 React 源码",
             "url": "http://localhost:8081",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}",
+            "sourceMapPathOverrides": {
+                "src/App.vue?t=?:*": "${workspaceFolder}/src/App.vue"
+            }
         }
     ]
 }
