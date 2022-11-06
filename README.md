@@ -9,3 +9,5 @@
 [线上报错直接调试本地源码](./online-error-debug/)
 
 [测试 CDP](./cdp-test/)
+
+[实现 Chrome DevTools 的 Coverage 功能](./cdp-coverage/)
