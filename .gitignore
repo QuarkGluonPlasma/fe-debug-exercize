@@ -5,3 +5,5 @@ yarn-*
 *-lock.yaml
 dist
 .DS_Store
+.dev_profile*
+.local-chromium
