@@ -1,0 +1,21 @@
+{
+  "name": "mini-puppeteer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "puppeteer": {
+    "chromium_revision": "970501"
+  },
+  "scripts": {
+    "postinstall": "node ./install.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chrome-remote-interface": "^0.31.3",
+    "extract-zip": "^2.0.1",
+    "progress": "^2.0.3",
+    "rimraf": "^3.0.2"
+  }
+}
