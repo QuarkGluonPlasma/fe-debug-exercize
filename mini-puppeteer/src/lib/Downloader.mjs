@@ -1,11 +1,11 @@
-const os = require('os');
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const extract = require('extract-zip');
-const util = require('util');
+import os from 'node:os';
+import path from 'node:path';
+import util from 'node:util';
+import https from 'node:https';
+import fs from 'node:fs';
+import extract from 'extract-zip';
 
-const CHROMIUM_PATH = path.join(__dirname, '..', '.local-chromium');
+const CHROMIUM_PATH = path.join(import.meta.dirname, '..', '..', '.local-chromium');
 
 const downloadURLs = {
     linux: 'https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64/%d/chrome-linux.zip',
@@ -28,7 +28,7 @@ async function downloadChromium(revision, progressCallback) {
     console.assert(url, `Unsupported platform: ${platform}`);
 
     url = util.format(url, revision);
-
+    
     const zipPath = path.join(CHROMIUM_PATH, `download-${revision}.zip`);
     const folderPath = path.join(CHROMIUM_PATH, revision);
 
@@ -59,9 +59,12 @@ function downloadFile(url, destinationPath, progressCallback) {
             return;
         }
         const file = fs.createWriteStream(destinationPath);
+
         file.on('finish', () => resolve ());
         file.on('error', error => reject(error));
+
         response.pipe(file);
+    
         const totalBytes = parseInt(response.headers['content-length'], 10);
         if (progressCallback)
             response.on('data', onData.bind(null, totalBytes));
@@ -89,7 +92,7 @@ function executablePath(revision) {
     throw new Error(`Unsupported platform: ${platform}`);
 }
 
-module.exports = {
+export {
     executablePath,
     downloadChromium
 }

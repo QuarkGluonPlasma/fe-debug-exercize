@@ -1,13 +1,20 @@
-const CDP = require('chrome-remote-interface');
-const http = require('http');
-const path = require('path');
-const removeRecursive = require('rimraf').sync;
-const Page = require('./Page');
-const childProcess = require('child_process');
-const Downloader = require('./Downloader');
+import childProcess from 'node:child_process';
+import path from 'node:path';
+import fs from 'node:fs';
+import fse from 'fs-extra';
+import { executablePath } from './Downloader.mjs';
+import http from 'node:http';
+import CDP from 'chrome-remote-interface';
+import { Page } from './Page.mjs';
 
-const CHROME_PROFILE_PATH = path.resolve(__dirname, '..', '.dev_profile');
 let browserId = 0;
+
+const pkgJsonPath = path.join(import.meta.dirname, '..', '..', 'package.json');
+const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+const revision = pkg.puppeteer.chromium_revision;
+
+//用户数据目录
+const CHROME_PROFILE_PATH = path.resolve(import.meta.dirname, '..', '..', '.dev_profile');
 
 class Browser {
 
@@ -33,48 +40,28 @@ class Browser {
         if (typeof options.executablePath === 'string') {
             this._chromeExecutable = options.executablePath;
         } else {
-            const chromiumRevision = require('../package.json').puppeteer.chromium_revision;
-            this._chromeExecutable = Downloader.executablePath(chromiumRevision);
+            const chromiumRevision = revision;
+            this._chromeExecutable = executablePath(chromiumRevision);
         }
 
         if (Array.isArray(options.args))
             this._chromeArguments.push(...options.args);
 
         this._chromeProcess = null;
-        this._tabSymbol = Symbol('Browser.TabSymbol');
     }
 
     async newPage() {
         await this._ensureChromeIsRunning();
-
+    
         if (!this._chromeProcess || this._chromeProcess.killed) {
             throw new Error('ERROR: this chrome instance is not alive any more!');
         }
         const tab = await CDP.New({port: this._remoteDebuggingPort});
+        
         const client = await CDP({tab: tab, port: this._remoteDebuggingPort});
-
         const page = await Page.create(this, client);
         page[this._tabSymbol] = tab;
         return page;
-    }
-
-    async closePage(page) {
-        if (!this._chromeProcess || this._chromeProcess.killed) {
-            throw new Error('ERROR: this chrome instance is not running');
-        }
-
-        const tab = page[this._tabSymbol];
-        if (!tab) {
-            throw new Error('ERROR: page does not belong to this chrome instance');
-        }
-
-        await CDP.Close({id: tab.id, port: this._remoteDebuggingPort});
-    }
-
-    async version() {
-        await this._ensureChromeIsRunning();
-        const version = await CDP.Version({port: this._remoteDebuggingPort});
-        return version.Browser;
     }
 
     async launch() {
@@ -87,9 +74,15 @@ class Browser {
         this._chromeProcess = childProcess.spawn(this._chromeExecutable, this._chromeArguments, {});
 
         process.on('exit', () => this._chromeProcess.kill());
-        this._chromeProcess.on('exit', () => removeRecursive(this._userDataDir));
+        this._chromeProcess.on('exit', () => fse.rmdirSync(this._userDataDir));
 
         await waitForChromeResponsive(this._remoteDebuggingPort);
+    }
+
+    async version() {
+        await this._ensureChromeIsRunning();
+        const version = await CDP.Version({port: this._remoteDebuggingPort});
+        return version.Browser;
     }
 
     close() {
@@ -98,8 +91,6 @@ class Browser {
         this._chromeProcess.kill();
     }
 }
-
-module.exports = Browser;
 
 function waitForChromeResponsive(remoteDebuggingPort) {
     var resolve;
@@ -120,4 +111,8 @@ function waitForChromeResponsive(remoteDebuggingPort) {
         req.on('error', e => setTimeout(sendRequest, 100));
         req.end();
     }
+}
+
+export {
+    Browser
 }

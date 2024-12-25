@@ -1,13 +1,13 @@
-const Downloader = require('./lib/Downloader');
-const revision = require('./package').puppeteer.chromium_revision;
-const fs = require('fs');
-const ProgressBar = require('progress');
+import { downloadChromium } from './lib/Downloader.mjs';
+import fs from 'node:fs';
+import ProgressBar from 'progress';
+import path from 'node:path';
 
-const executable = Downloader.executablePath(revision);
-if (fs.existsSync(executable))
-    return;
+const pkgJsonPath = path.join(import.meta.dirname, '..', 'package.json');
+const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+const revision = pkg.puppeteer.chromium_revision;
 
-Downloader.downloadChromium(revision, onProgress)
+downloadChromium(revision, onProgress)
     .catch(error => {
         console.error('Download failed: ' + error.message);
     });
@@ -16,8 +16,8 @@ let progressBar = null;
 function onProgress(bytesTotal, delta) {
     if (!progressBar) {
         progressBar = new ProgressBar(`Downloading Chromium - ${toMegabytes(bytesTotal)} [:bar] :percent :etas `, {
-            complete: '=',
-            incomplete: ' ',
+            complete: '\u2588',
+            incomplete: '\u2591',
             width: 20,
             total: bytesTotal,
         });

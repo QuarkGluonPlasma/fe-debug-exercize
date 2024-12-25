@@ -7,13 +7,15 @@
     "chromium_revision": "970501"
   },
   "scripts": {
-    "postinstall": "node ./install.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chrome-remote-interface": "^0.33.2",
     "extract-zip": "^2.0.1",
+    "fs-extra": "^11.2.0",
     "progress": "^2.0.3"
   }
 }

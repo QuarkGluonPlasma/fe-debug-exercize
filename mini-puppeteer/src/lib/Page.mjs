@@ -1,3 +1,5 @@
+import { evaluate } from "./helpers.mjs";
+
 class Page{
 
     static async create(browser, client) {
@@ -12,6 +14,13 @@ class Page{
         this._client = client;
     }
 
+    async navigate(url) {
+        var loadPromise = new Promise(resolve => this._client.once('Page.loadEventFired', resolve)).then(() => true);
+    
+        await this._client.send('Page.navigate', {url});
+        return await loadPromise;
+    }
+
     async setContent(html) {
         var resourceTree = await this._client.send('Page.getResourceTree', {});
         await this._client.send('Page.setDocumentContent', {
@@ -20,16 +29,13 @@ class Page{
         });
     }
 
-    async navigate(url) {
-        var loadPromise = new Promise(resolve => this._client.once('Page.loadEventFired', resolve)).then(() => true);
-
-        await this._client.send('Page.navigate', {url});
-        return await loadPromise;
-    }
-
-    async close() {
-        return this._browser.closePage(this);
+    async evaluate(fun, ...args) {
+        var response = await evaluate(this._client, fun, args, false);
+    
+        return response.result.value;
     }
 }
 
-module.exports = Page;
+export {
+    Page
+}
